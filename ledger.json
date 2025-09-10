@@ -1,0 +1,112 @@
+[
+  {
+    "id": "adj_1757482597594_j22ect",
+    "gameId": "",
+    "dateISO": "2025-09-10",
+    "playerId": "p_1757482499800_59pyr6",
+    "due": 14.49,
+    "paid": true,
+    "paidAt": "2025-09-10T05:36:37.594Z",
+    "type": "adjustment"
+  },
+  {
+    "id": "adj_1757482608871_r1fvid",
+    "gameId": "",
+    "dateISO": "2025-09-10",
+    "playerId": "p_1757482546872_4fqzp1",
+    "due": 16.67,
+    "paid": true,
+    "paidAt": "2025-09-10T05:36:48.871Z",
+    "type": "adjustment"
+  },
+  {
+    "id": "adj_1757482623339_7dz3o8",
+    "gameId": "",
+    "dateISO": "2025-09-10",
+    "playerId": "p_1757482529990_8gereg",
+    "due": 16.67,
+    "paid": true,
+    "paidAt": "2025-09-10T05:37:03.339Z",
+    "type": "adjustment"
+  },
+  {
+    "id": "adj_1757482634480_mds0po",
+    "gameId": "",
+    "dateISO": "2025-09-10",
+    "playerId": "p_1757482578659_c2mbg3",
+    "due": 10.31,
+    "paid": true,
+    "paidAt": "2025-09-10T05:37:14.480Z",
+    "type": "adjustment"
+  },
+  {
+    "id": "adj_1757482640868_r3oagd",
+    "gameId": "",
+    "dateISO": "2025-09-10",
+    "playerId": "p_1757482578659_c2mbg3",
+    "due": 10.31,
+    "paid": true,
+    "paidAt": "2025-09-10T05:37:20.868Z",
+    "type": "adjustment"
+  },
+  {
+    "id": "adj_1757482657729_4zfa61",
+    "gameId": "",
+    "dateISO": "2025-09-10",
+    "playerId": "p_1757482523138_pas1t8",
+    "due": 9.17,
+    "paid": true,
+    "paidAt": "2025-09-10T05:37:37.729Z",
+    "type": "adjustment"
+  },
+  {
+    "id": "adj_1757482669848_jo3ixe",
+    "gameId": "",
+    "dateISO": "2025-09-10",
+    "playerId": "p_1757482573555_1kg7nx",
+    "due": 9.17,
+    "paid": true,
+    "paidAt": "2025-09-10T05:37:49.848Z",
+    "type": "adjustment"
+  },
+  {
+    "id": "adj_1757482680428_ea55wc",
+    "gameId": "",
+    "dateISO": "2025-09-10",
+    "playerId": "p_1757482565870_mh8cm0",
+    "due": 9.17,
+    "paid": true,
+    "paidAt": "2025-09-10T05:38:00.428Z",
+    "type": "adjustment"
+  },
+  {
+    "id": "adj_1757482688205_n449l7",
+    "gameId": "",
+    "dateISO": "2025-09-10",
+    "playerId": "p_1757482561665_63r6f2",
+    "due": 7.17,
+    "paid": true,
+    "paidAt": "2025-09-10T05:38:08.205Z",
+    "type": "adjustment"
+  },
+  {
+    "id": "adj_1757482700010_i6fe1n",
+    "gameId": "",
+    "dateISO": "2025-09-10",
+    "playerId": "p_1757482582244_9d9umh",
+    "due": 10.31,
+    "paid": true,
+    "paidAt": "2025-09-10T05:38:20.010Z",
+    "type": "adjustment"
+  },
+  {
+    "id": "adj_1757482733086_uvyvzu",
+    "gameId": "",
+    "dateISO": "2025-09-10",
+    "playerId": "p_1757482519529_mn2yg2",
+    "due": -70.19,
+    "paid": true,
+    "paidAt": "2025-09-10T05:38:53.086Z",
+    "type": "adjustment"
+  }
+]

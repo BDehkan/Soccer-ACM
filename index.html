@@ -1,0 +1,674 @@
+on<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Weekly Soccer Manager</title>
+<style>
+  :root{
+    --navy:#0b2f6b;           /* deeper navy for calmer feel */
+    --navy-600:#143d86;
+    --gold:#B59A57;
+    --bg: #f3f5f9;
+    --bg-grad: radial-gradient(1200px 600px at 10% -10%, #eef2ff 0%, rgba(238,242,255,0) 60%),
+               radial-gradient(800px 500px at 100% 0%, #fef3c7 0%, rgba(254,243,199,0) 55%);
+    --card:#ffffff;
+    --border:#e6e8ee;
+    --text:#0f172a;
+    --muted:#6b7280;
+    --ok:#0a7f2e;
+    --bad:#9b1c1c;
+    --ring:#94a3b8;
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{
+    margin:0; color:var(--text);
+    font-family:ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, "Apple Color Emoji","Segoe UI Emoji";
+    background:var(--bg); background-image:var(--bg-grad);
+  }
+  .container{max-width:1100px;margin:28px auto;padding:0 16px}
+  .header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
+  .brand{
+    display:flex;align-items:center;gap:12px;
+  }
+  .brand-badge{
+    width:40px;height:40px;border-radius:12px;
+    background:linear-gradient(145deg,var(--navy) 0%, var(--navy-600) 100%);
+    box-shadow:0 6px 18px rgba(20,61,134,.25), inset 0 0 0 1px rgba(255,255,255,.08);
+  }
+  h1{margin:0;font-size:1.35rem;letter-spacing:.2px}
+  .nav{display:flex;gap:8px;flex-wrap:wrap}
+  .tab{
+    border:1px solid var(--border);background:#fff;color:#0f172a;
+    border-radius:999px;padding:.55rem .95rem;cursor:pointer;
+    transition:box-shadow .2s ease, transform .05s;
+  }
+  .tab:hover{box-shadow:0 4px 14px rgba(15,23,42,.08)}
+  .tab:active{transform:translateY(1px)}
+  .tab.active{background:linear-gradient(145deg,var(--navy) 0%, var(--navy-600) 100%);color:#fff;border-color:transparent}
+  .card{
+    background:var(--card);border:1px solid var(--border);border-radius:16px;padding:16px;margin-bottom:16px;
+    box-shadow:0 10px 30px rgba(15,23,42,.06)
+  }
+  h2{margin:.25rem 0 1rem;font-size:1.05rem}
+  label{display:block;font-weight:600;margin:.5rem 0 .35rem}
+  input,select,button{font:inherit}
+  input[type="text"],input[type="number"],input[type="date"],select{
+    width:100%;padding:.7rem .8rem;border:1px solid var(--border);border-radius:12px;background:#fff;
+    transition:border-color .15s ease, box-shadow .15s ease;
+  }
+  input:focus,select:focus{outline:none;border-color:var(--ring);box-shadow:0 0 0 4px rgba(148,163,184,.25)}
+  .grid{display:grid;gap:14px}
+  .g-2{grid-template-columns:1fr 1fr}
+  .g-3{grid-template-columns:1fr 1fr 1fr}
+  @media (max-width:900px){ .g-2,.g-3{grid-template-columns:1fr} }
+  .btn{
+    border:0;border-radius:12px;padding:.65rem 1rem;cursor:pointer;user-select:none;
+    transition: transform .05s ease, box-shadow .2s ease, opacity .15s ease;
+  }
+  .btn:hover{box-shadow:0 6px 18px rgba(15,23,42,.1)}
+  .btn:active{transform:translateY(1px)}
+  .btn.primary{background:linear-gradient(145deg,var(--navy) 0%, var(--navy-600) 100%);color:#fff}
+  .btn.ghost{background:#fff;border:1px solid var(--border)}
+  .btn.danger{background:#fff;border:1px solid #f3b1b1}
+  .btn.small{padding:.45rem .7rem;border-radius:10px}
+  .players{
+    display:flex;flex-wrap:wrap;gap:8px;max-height:220px;overflow:auto;
+    border:1px solid var(--border);border-radius:12px;padding:10px;background:#fff
+  }
+  .players label{margin:0;font-weight:500}
+  .pill{
+    display:inline-flex;align-items:center;gap:8px;border:1px solid var(--border);
+    border-radius:999px;padding:.35rem .7rem;background:#fff
+  }
+  .pill input[type="checkbox"]{transform:translateY(1px)}
+  table{width:100%;border-collapse:collapse;background:#fff;border-radius:12px;overflow:hidden}
+  th,td{border-bottom:1px solid #eef1f6;padding:.65rem .6rem;text-align:left;vertical-align:top}
+  th{font-weight:700;font-size:.9rem;background:#fafbff}
+  .chip{display:inline-block;padding:.2rem .55rem;border-radius:999px;font-size:.8rem}
+  .chip.ok{background:#e8f6ed;color:var(--ok);font-weight:700}
+  .chip.bad{background:#fdecec;color:var(--bad);font-weight:700}
+  .paid{color:var(--ok);font-weight:700}
+  .unpaid{color:var(--bad);font-weight:700}
+  .row-actions{display:flex;gap:6px;flex-wrap:wrap}
+  .clickable{color:#0b66d6;cursor:pointer}
+  .hidden{display:none}
+  /* tiny toast for feedback */
+  .toast{
+    position:fixed;bottom:22px;right:22px;background:#111827;color:#fff;
+    padding:.6rem .8rem;border-radius:10px;box-shadow:0 10px 30px rgba(0,0,0,.2);
+    opacity:0;transform:translateY(6px);transition:.25s ease;pointer-events:none;font-size:.9rem;
+  }
+  .toast.show{opacity:1;transform:translateY(0)}
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="header">
+    <div class="brand">
+      <div class="brand-badge" aria-hidden="true"></div>
+      <h1>Weekly Soccer Manager</h1>
+    </div>
+    <div class="nav">
+      <button class="tab active" data-tab="main">Main</button>
+      <button class="tab" data-tab="player-statement">Player Statement</button>
+      <button class="tab" data-tab="admin-login">Admin</button>
+      <button class="tab hidden" data-tab="admin-players">Admin → Players</button>
+      <button class="tab hidden" data-tab="admin-games">Admin → Games</button>
+      <button class="tab hidden" data-tab="admin-storage">Admin → Storage</button>
+    </div>
+  </div>
+
+  <!-- MAIN -->
+  <section id="tab-main" class="card">
+    <h2>Games & Payments</h2>
+    <div class="grid g-3">
+      <div>
+        <label>Select Game Date</label>
+        <select id="mainGameSelect"><option value="">—</option></select>
+      </div>
+      <div>
+        <label>Who Played</label>
+        <div id="mainGamePlayers" class="players">Pick a date…</div>
+      </div>
+      <div>
+        <label>Who Paid</label>
+        <div id="mainGamePaid" class="players">Pick a date…</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Balances -->
+  <section class="card">
+    <div style="display:flex;justify-content:space-between;align-items:center">
+      <h2>Balances</h2>
+      <button id="refreshBalancesBtn" class="btn ghost small">Refresh</button>
+    </div>
+    <table id="balancesTable">
+      <thead><tr><th>Player</th><th>Owed</th><th>Paid</th><th>Balance (credit if +)</th></tr></thead>
+      <tbody></tbody>
+    </table>
+  </section>
+
+  <!-- PLAYER STATEMENT -->
+  <section id="tab-player-statement" class="card hidden">
+    <div style="display:flex;justify-content:space-between;align-items:center">
+      <h2>Player Statement</h2>
+      <select id="statementPlayer"></select>
+    </div>
+    <table id="statementTable">
+      <thead><tr><th>Date</th><th>Type</th><th>Amount</th><th>Status</th></tr></thead>
+      <tbody></tbody>
+    </table>
+  </section>
+
+  <!-- ADMIN LOGIN -->
+  <section id="tab-admin-login" class="card hidden">
+    <h2>Admin Access</h2>
+    <p style="color:var(--muted);margin-top:.25rem">Default password: <b>socceradmin</b> (change it in Admin → Storage).</p>
+    <div class="grid g-2" style="margin-top:.5rem">
+      <div>
+        <label>Password</label>
+        <input id="adminPass" type="password" placeholder="••••••••">
+      </div>
+      <div style="align-self:end">
+        <button id="adminLoginBtn" class="btn primary">Log in</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ADMIN → PLAYERS -->
+  <section id="tab-admin-players" class="card hidden">
+    <h2>Admin → Players</h2>
+    <div class="grid g-2">
+      <div>
+        <label>Add Player</label>
+        <div style="display:flex;gap:10px;flex-wrap:wrap">
+          <input id="newPlayer" type="text" placeholder="e.g., Alex Johnson">
+          <button id="addPlayerBtn" class="btn primary">Add</button>
+        </div>
+      </div>
+      <div>
+        <label>Balance Adjustment</label>
+        <div style="display:flex;gap:10px;flex-wrap:wrap">
+          <select id="adjustPlayer"></select>
+          <input id="adjustAmount" type="number" step="0.01" placeholder="Positive=credit, Negative=debit">
+          <button id="adjustBtn" class="btn ghost">Add Adjustment</button>
+        </div>
+        <span style="color:var(--muted)">Creates an “Adjustment” entry in the ledger for audit.</span>
+      </div>
+    </div>
+    <table id="playersTable" style="margin-top:.75rem">
+      <thead><tr><th style="width:40%">Name</th><th>Active</th><th>Actions</th></tr></thead>
+      <tbody></tbody>
+    </table>
+  </section>
+
+  <!-- ADMIN → GAMES -->
+  <section id="tab-admin-games" class="card hidden">
+    <h2>Admin → Games</h2>
+    <div class="grid g-3">
+      <div>
+        <label>Date</label>
+        <input id="gameDate" type="date">
+      </div>
+      <div>
+        <label>Total Cost</label>
+        <input id="gameCost" type="number" step="0.01" placeholder="e.g., 80">
+      </div>
+      <div>
+        <label>Players this week</label>
+        <div id="playersPicker" class="players">Add players first…</div>
+      </div>
+    </div>
+    <div style="display:flex;gap:12px;align-items:center;margin-top:12px">
+      <button id="addGameBtn" class="btn primary">Add Game & Split Cost</button>
+      <span class="pill">Per-player: <b id="perHeadPreview" style="margin-left:8px">$0.00</b></span>
+    </div>
+    <hr style="border:none;border-top:1px solid #eef1f6;margin:16px 0">
+    <div style="display:flex;justify-content:space-between;align-items:center">
+      <h3 style="margin:0">Games</h3>
+      <button id="refreshGamesBtn" class="btn ghost small">Refresh</button>
+    </div>
+    <table id="gamesTable" style="margin-top:.5rem">
+      <thead><tr><th>Date</th><th>Cost</th><th>#Players</th><th>Per Player</th><th>Actions</th></tr></thead>
+      <tbody></tbody>
+    </table>
+  </section>
+
+  <!-- ADMIN → STORAGE -->
+  <section id="tab-admin-storage" class="card hidden">
+    <h2>Admin → Storage</h2>
+    <p style="color:var(--muted);margin-top:.25rem">Connect three JSON files. The app auto-saves after changes. If your browser doesn’t support it, it’ll use local storage.</p>
+    <div class="grid g-3" style="margin-top:.5rem">
+      <div>
+        <label>Players JSON</label>
+        <div style="display:flex;gap:10px;flex-wrap:wrap">
+          <button class="btn ghost" id="pickPlayersFile">Choose / Create</button>
+          <span id="playersPath" class="pill">Not connected</span>
+        </div>
+      </div>
+      <div>
+        <label>Games JSON</label>
+        <div style="display:flex;gap:10px;flex-wrap:wrap">
+          <button class="btn ghost" id="pickGamesFile">Choose / Create</button>
+          <span id="gamesPath" class="pill">Not connected</span>
+        </div>
+      </div>
+      <div>
+        <label>Ledger JSON</label>
+        <div style="display:flex;gap:10px;flex-wrap:wrap">
+          <button class="btn ghost" id="pickLedgerFile">Choose / Create</button>
+          <span id="ledgerPath" class="pill">Not connected</span>
+        </div>
+      </div>
+    </div>
+    <div class="grid g-2" style="margin-top:12px">
+      <div>
+        <label>Admin Password</label>
+        <div style="display:flex;gap:10px;flex-wrap:wrap">
+          <input id="adminPasswordNew" type="text" placeholder="Change admin password">
+          <button id="saveAdminPassword" class="btn ghost">Save</button>
+        </div>
+      </div>
+      <div>
+        <label>File API Support</label>
+        <div class="pill" id="fsSupportTag">Checking…</div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+<script>
+(() => {
+  /* ========= Utilities ========= */
+  const $ = (id) => document.getElementById(id);
+  const qs = (sel,root=document) => root.querySelector(sel);
+  const qsa = (sel,root=document) => [...root.querySelectorAll(sel)];
+  const money = (n) => (Number(n)||0).toFixed(2);
+  const uid = (p='id') => `${p}_${Date.now()}_${Math.random().toString(36).slice(2,8)}`;
+  const todayISO = () => new Date().toISOString().slice(0,10);
+  const fmtDate = (d) => { try{const x=new Date(d); return isNaN(+x)?'':x.toLocaleDateString();}catch{return '';} };
+  function toast(msg){
+    const t=$('toast'); t.textContent=msg; t.classList.add('show');
+    clearTimeout(toast._h); toast._h=setTimeout(()=>t.classList.remove('show'),1800);
+  }
+  const setMsg = toast; // route messages to a subtle toast
+
+  /* ========= Data Model =========
+     players: [{id,name,active}]
+     games:   [{id,dateISO,cost,players:[playerId],per}]
+     ledger:  [{id,gameId,dateISO,playerId,due,paid,paidAt,type}]  // type: 'game' | 'adjustment'
+  */
+  const STORE_KEY = 'soccer_manager_v3';
+  let DB = { players:[], games:[], ledger:[] };
+
+  /* ========= Admin Gate (client-only) ========= */
+  const ADMIN_KEY = 'soccer_admin_pw';
+  function getAdminPw(){ return localStorage.getItem(ADMIN_KEY) || 'socceradmin'; }
+  function setAdminPw(pw){ localStorage.setItem(ADMIN_KEY, pw); }
+
+  let isAdmin = false;
+  function requireAdmin(){
+    if (!isAdmin){ switchTab('admin-login'); setMsg('Admin login required'); }
+    return isAdmin;
+  }
+
+  /* ========= Persistence Layer ========= */
+  const supportsFS = !!(window.showOpenFilePicker && window.showSaveFilePicker);
+  $('fsSupportTag').textContent = supportsFS ? 'Available' : 'Not available';
+  let fileHandles = { players:null, games:null, ledger:null };
+  function setPathLabel(kind, name){ $(`${kind}Path`).textContent = name || 'Not connected'; }
+
+  async function pickFile(kind){
+    try{
+      const handle = await showSaveFilePicker({
+        suggestedName: `${kind}.json`,
+        types: [{ description:'JSON', accept: {'application/json':['.json']} }]
+      });
+      fileHandles[kind] = handle;
+      setPathLabel(kind, handle.name || '(selected)');
+      await writeJson(kind, DB[kind]);  // initialize with current data
+      setMsg(`${kind}.json connected`);
+    }catch(e){ /* canceled */ }
+  }
+
+  async function writeJson(kind, data){
+    if (!fileHandles[kind]){ saveLocal(); return; }
+    try{
+      const writable = await fileHandles[kind].createWritable();
+      await writable.write(JSON.stringify(data,null,2));
+      await writable.close();
+    }catch(e){ setMsg(`Save failed (${kind})`); }
+  }
+
+  async function readJson(kind){
+    if (!fileHandles[kind]) return null;
+    try{
+      const f = await fileHandles[kind].getFile();
+      const txt = await f.text();
+      return JSON.parse(txt);
+    }catch(e){ setMsg(`Read failed (${kind})`); return null; }
+  }
+
+  function saveLocal(){ localStorage.setItem(STORE_KEY, JSON.stringify(DB)); }
+  async function persistAll(){
+    if (fileHandles.players) await writeJson('players', DB.players);
+    if (fileHandles.games)   await writeJson('games',   DB.games);
+    if (fileHandles.ledger)  await writeJson('ledger',  DB.ledger);
+    saveLocal();
+  }
+  async function loadAll(){
+    const fromFiles = {players:null,games:null,ledger:null};
+    for (const k of ['players','games','ledger']) fromFiles[k] = await readJson(k);
+    const haveFiles = Object.values(fromFiles).every(v => Array.isArray(v));
+    if (haveFiles){
+      DB.players = fromFiles.players; DB.games = fromFiles.games; DB.ledger = fromFiles.ledger;
+    }else{
+      try{ DB = JSON.parse(localStorage.getItem(STORE_KEY)) || DB; }catch{}
+    }
+  }
+
+  /* ========= Tabs ========= */
+  function switchTab(name){
+    qsa('section[id^="tab-"]').forEach(s=>s.classList.add('hidden'));
+    qs(`#tab-${name}`)?.classList.remove('hidden');
+    qsa('.tab').forEach(b=>b.classList.remove('active'));
+    qsa(`.tab[data-tab="${name}"]`).forEach(b=>b.classList.add('active'));
+  }
+  qsa('.tab').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      const t = btn.getAttribute('data-tab');
+      if (t.startsWith('admin-') && !isAdmin){ switchTab('admin-login'); return; }
+      switchTab(t);
+    });
+  });
+
+  /* ========= Players UI (Admin) ========= */
+  function renderPlayersTable(){
+    const tb = $('playersTable').querySelector('tbody'); tb.innerHTML = '';
+    DB.players.slice().sort((a,b)=>a.name.localeCompare(b.name)).forEach(p=>{
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td>${p.name}</td>
+        <td><label class="pill"><input type="checkbox" ${p.active?'checked':''} data-ptype="toggle" data-id="${p.id}"> Active</label></td>
+        <td class="row-actions">
+          <button class="btn small ghost" data-ptype="rename" data-id="${p.id}">Rename</button>
+          <button class="btn small danger" data-ptype="remove" data-id="${p.id}">Remove</button>
+        </td>`;
+      tb.appendChild(tr);
+    });
+    const sel = $('adjustPlayer');
+    const keep = sel.value;
+    sel.innerHTML = DB.players.slice().sort((a,b)=>a.name.localeCompare(b.name)).map(p=>`<option value="${p.id}">${p.name}</option>`).join('');
+    if ([...sel.options].some(o=>o.value===keep)) sel.value = keep;
+  }
+  function renderPlayersPicker(){
+    const box = $('playersPicker'); box.innerHTML = '';
+    if (!DB.players.length){ box.textContent = 'Add players first…'; return; }
+    DB.players.filter(p=>p.active).forEach(p=>{
+      const lbl = document.createElement('label'); lbl.className='pill';
+      const cb = document.createElement('input'); cb.type='checkbox'; cb.value=p.id; cb.dataset.picker='1';
+      lbl.appendChild(cb); lbl.appendChild(document.createTextNode(p.name));
+      box.appendChild(lbl);
+    });
+  }
+  function selectedPlayerIds(){ return qsa('#playersPicker input[type=checkbox][data-picker="1"]:checked').map(i=>i.value); }
+  function playerName(id){ return (DB.players.find(p=>p.id===id)||{}).name || '(deleted)'; }
+
+  $('playersTable').addEventListener('click', async (e)=>{
+    const id = e.target.getAttribute('data-id');
+    const type = e.target.getAttribute('data-ptype');
+    if (!id || !type) return;
+    if (type==='rename'){
+      const p = DB.players.find(x=>x.id===id); if (!p) return;
+      const newName = prompt('Rename player:', p.name);
+      if (newName && newName.trim()){ p.name = newName.trim(); await persistAll(); renderAll(); setMsg('Renamed'); }
+    } else if (type==='remove'){
+      const p = DB.players.find(x=>x.id===id); if (!p) return;
+      if (!confirm(`Remove ${p.name}? Past ledger entries will remain.`)) return;
+      DB.players = DB.players.filter(x=>x.id!==id);
+      await persistAll(); renderAll(); setMsg('Removed');
+    }
+  });
+  $('playersTable').addEventListener('change', async (e)=>{
+    const t = e.target;
+    if (t.getAttribute('data-ptype')==='toggle'){
+      const id = t.getAttribute('data-id');
+      const p = DB.players.find(x=>x.id===id);
+      if (p){ p.active = !!t.checked; await persistAll(); renderPlayersPicker(); setMsg('Status updated'); }
+    }
+  });
+  $('addPlayerBtn').addEventListener('click', async ()=>{
+    const name = $('newPlayer').value.trim();
+    if (!name) return setMsg('Enter a name');
+    if (DB.players.some(p=>p.name.toLowerCase()===name.toLowerCase())) return setMsg('Player exists');
+    DB.players.push({ id: uid('p'), name, active:true });
+    $('newPlayer').value='';
+    await persistAll(); renderAll(); setMsg('Player added');
+  });
+  $('adjustBtn').addEventListener('click', async ()=>{
+    const pid = $('adjustPlayer').value;
+    let amt = Number($('adjustAmount').value || 0);
+    if (!pid || !amt) return setMsg('Pick player & non-zero amount');
+    // Positive input => credit (reduce debt), store as negative due
+    DB.ledger.push({ id:uid('adj'), gameId:'', dateISO: todayISO(), playerId: pid, due: -amt, paid:true, paidAt:new Date().toISOString(), type:'adjustment' });
+    $('adjustAmount').value = '';
+    await persistAll(); renderAll(); setMsg('Adjustment added');
+  });
+
+  /* ========= Games & Ledger ========= */
+  function calcPerHeadPreview(){
+    const cost = Number($('gameCost').value||0);
+    const count = selectedPlayerIds().length;
+    $('perHeadPreview').textContent = `$${money(count ? cost/count : 0)}`;
+  }
+  $('playersPicker').addEventListener('change', calcPerHeadPreview);
+  $('gameCost').addEventListener('input', calcPerHeadPreview);
+
+  $('addGameBtn').addEventListener('click', async ()=>{
+    if (!requireAdmin()) return;
+    const dateISO = $('gameDate').value || todayISO();
+    const cost = Number($('gameCost').value||0);
+    const ids = selectedPlayerIds();
+    if (!ids.length) return setMsg('Select at least one player');
+    if (!(isFinite(cost) && cost>0)) return setMsg('Enter a valid total cost');
+    const per = +(cost / ids.length).toFixed(2);
+    const gid = uid('game');
+    DB.games.push({ id:gid, dateISO, cost, players: ids.slice(), per });
+    ids.forEach(pid=>{
+      DB.ledger.push({ id:uid('e'), gameId:gid, dateISO, playerId:pid, due: per, paid:false, paidAt:'', type:'game' });
+    });
+    $('gameCost').value=''; qsa('#playersPicker input[type=checkbox]').forEach(cb=>cb.checked=false); calcPerHeadPreview();
+    await persistAll(); renderAll(); setMsg(`Game saved ($${money(per)} each)`);
+  });
+
+  function renderGames(){
+    const tb = $('gamesTable').querySelector('tbody'); tb.innerHTML='';
+    DB.games.slice().sort((a,b)=>new Date(b.dateISO)-new Date(a.dateISO)).forEach(g=>{
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td>${fmtDate(g.dateISO)}</td>
+        <td>$${money(g.cost)}</td>
+        <td>${g.players.length}</td>
+        <td>$${money(g.per)}</td>
+        <td class="row-actions">
+          <button class="btn small ghost" data-gshow="${g.id}">Show Players</button>
+          <button class="btn small danger" data-gdel="${g.id}">Delete</button>
+        </td>`;
+      tb.appendChild(tr);
+    });
+  }
+  $('gamesTable').addEventListener('click', async (e)=>{
+    const del = e.target.getAttribute('data-gdel');
+    const show = e.target.getAttribute('data-gshow');
+    if (del){
+      if (!confirm('Delete this game and all its ledger entries?')) return;
+      DB.games = DB.games.filter(g=>g.id!==del);
+      DB.ledger = DB.ledger.filter(l=>l.gameId!==del);
+      await persistAll(); renderAll(); setMsg('Game deleted');
+    }
+    if (show){
+      const g = DB.games.find(x=>x.id===show);
+      if (!g) return;
+      alert(`Players for ${fmtDate(g.dateISO)}\n\n${g.players.map(pid=>'• '+playerName(pid)).join('\n')}`);
+    }
+  });
+
+  /* ========= Main view (no user toggles unless Admin) ========= */
+  function renderMainGames(){
+    const sel = $('mainGameSelect');
+    const keep = sel.value;
+    const options = DB.games.slice().sort((a,b)=> new Date(b.dateISO)-new Date(a.dateISO))
+      .map(g=>`<option value="${g.id}">${fmtDate(g.dateISO)} — $${money(g.cost)} (${g.players.length})</option>`);
+    sel.innerHTML = `<option value="">—</option>` + options.join('');
+    if ([...sel.options].some(o=>o.value===keep)) sel.value = keep;
+    showMainGame(sel.value || '');
+  }
+  function showMainGame(gid){
+    const who = $('mainGamePlayers'); const paid = $('mainGamePaid');
+    who.innerHTML = paid.innerHTML = 'Pick a date…';
+    if (!gid) return;
+    const g = DB.games.find(x=>x.id===gid); if (!g) return;
+    const rows = DB.ledger.filter(l=>l.gameId===gid && l.type!=='adjustment');
+    who.innerHTML = ''; paid.innerHTML = '';
+    rows.forEach(r=>{
+      const nm = playerName(r.playerId);
+      const el = document.createElement('label'); el.className='pill clickable'; el.textContent = nm;
+      el.addEventListener('click', ()=>{ $('statementPlayer').value = r.playerId; switchTab('player-statement'); renderStatement(); });
+      who.appendChild(el);
+
+      const st = document.createElement('div'); st.className='pill';
+      st.innerHTML = `${nm} — ${r.paid?'<span class="paid">PAID</span>':'<span class="unpaid">UNPAID</span>'}`;
+      // Only Admin can toggle from here:
+      if (isAdmin){
+        const btn = document.createElement('button');
+        btn.className = 'btn small ghost';
+        btn.textContent = 'Toggle';
+        btn.addEventListener('click', async ()=>{
+          r.paid = !r.paid; r.paidAt = r.paid ? new Date().toISOString() : '';
+          await persistAll(); renderAll();
+        });
+        st.appendChild(btn);
+      }
+      paid.appendChild(st);
+    });
+  }
+  $('mainGameSelect').addEventListener('change', e=>showMainGame(e.target.value));
+
+  /* ========= Balances & Statements ========= */
+  function recomputeBalances(){
+    const by = {};
+    DB.ledger.forEach(r=>{
+      const nm = playerName(r.playerId);
+      if (!by[nm]) by[nm] = { owed:0, paid:0 };
+      const amt = Number(r.due)||0;
+      if (r.type==='adjustment'){
+        if (amt<0){ by[nm].paid += Math.abs(amt); } else { by[nm].owed += amt; }
+      }else{
+        by[nm].owed += amt;
+        if (r.paid) by[nm].paid += amt;
+      }
+    });
+    return by;
+  }
+  function renderBalances(){
+    const by = recomputeBalances();
+    const tb = $('balancesTable').querySelector('tbody'); tb.innerHTML = '';
+    Object.keys(by).sort().forEach(nm=>{
+      const owed = +by[nm].owed.toFixed(2);
+      const paid = +by[nm].paid.toFixed(2);
+      const bal = +(paid - owed).toFixed(2);
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td><span class="clickable" data-playername="${nm}">${nm}</span></td>
+        <td>$${money(owed)}</td>
+        <td>$${money(paid)}</td>
+        <td>${bal>=0?`<span class="chip ok">+$${money(bal)}</span>`:`<span class="chip bad">-$${money(Math.abs(bal))}</span>`}</td>`;
+      tb.appendChild(tr);
+    });
+  }
+  $('balancesTable').addEventListener('click', (e)=>{
+    const nm = e.target.getAttribute('data-playername');
+    if (!nm) return;
+    const p = DB.players.find(x=>x.name===nm);
+    if (!p) return;
+    $('statementPlayer').value = p.id;
+    switchTab('player-statement'); renderStatement();
+  });
+  $('refreshBalancesBtn').addEventListener('click', renderBalances);
+
+  function renderStatement(){
+    const sel = $('statementPlayer');
+    const keep = sel.value || sel.getAttribute('data-keep');
+    sel.innerHTML = DB.players.slice().sort((a,b)=>a.name.localeCompare(b.name)).map(p=>`<option value="${p.id}">${p.name}</option>`).join('');
+    if (keep && [...sel.options].some(o=>o.value===keep)) sel.value = keep;
+    sel.setAttribute('data-keep', sel.value);
+
+    const pid = sel.value;
+    const tb = $('statementTable').querySelector('tbody'); tb.innerHTML = '';
+    const rows = DB.ledger.filter(r=>r.playerId===pid).slice()
+      .sort((a,b)=> new Date(b.dateISO)-new Date(a.dateISO));
+    rows.forEach(r=>{
+      const type = r.type==='adjustment' ? 'Adjustment' : 'Game Share';
+      const amt = r.type==='adjustment' ? (r.due<0 ? `Credit $${money(Math.abs(r.due))}` : `Debit $${money(r.due)}`) : `$${money(r.due)}`;
+      const st  = r.type==='adjustment' ? 'Applied' : (r.paid ? 'PAID' : 'UNPAID');
+      const tr = document.createElement('tr');
+      tr.innerHTML = `<td>${fmtDate(r.dateISO)}</td><td>${type}</td><td>${amt}</td><td>${st}</td>`;
+      tb.appendChild(tr);
+    });
+  }
+  $('statementPlayer').addEventListener('change', ()=>{
+    $('statementPlayer').setAttribute('data-keep', $('statementPlayer').value);
+    renderStatement();
+  });
+
+  /* ========= Admin: Storage ========= */
+  $('pickPlayersFile').addEventListener('click', ()=>pickFile('players'));
+  $('pickGamesFile').addEventListener('click', ()=>pickFile('games'));
+  $('pickLedgerFile').addEventListener('click', ()=>pickFile('ledger'));
+  $('saveAdminPassword').addEventListener('click', ()=>{
+    const v = $('adminPasswordNew').value.trim();
+    if (!v) return setMsg('Enter a password');
+    setAdminPw(v); $('adminPasswordNew').value=''; setMsg('Password updated');
+  });
+
+  /* ========= Admin Login ========= */
+  $('adminLoginBtn').addEventListener('click', ()=>{
+    const v = $('adminPass').value;
+    if (v === getAdminPw()){
+      isAdmin = true; setMsg('Admin logged in');
+      qsa('.tab[data-tab="admin-players"], .tab[data-tab="admin-games"], .tab[data-tab="admin-storage"]').forEach(b=>b.classList.remove('hidden'));
+      switchTab('admin-players'); renderAll(); // re-render to show admin-only toggles on main
+    }else{
+      setMsg('Wrong password');
+    }
+  });
+
+  /* ========= Wiring & Init ========= */
+  $('refreshGamesBtn').addEventListener('click', renderGames);
+  $('gameDate').value = todayISO();
+  $('mainGameSelect').addEventListener('change', e=>showMainGame(e.target.value));
+
+  async function renderAll(){
+    renderPlayersTable();
+    renderPlayersPicker();
+    renderGames();
+    renderMainGames();
+    renderBalances();
+    renderStatement();
+    calcPerHeadPreview();
+  }
+
+  (async function init(){
+    await loadAll();
+    await persistAll(); // keep a local copy
+    renderAll();
+  })();
+})();
+</script>
+</body>
+</html>
