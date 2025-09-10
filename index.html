@@ -361,16 +361,56 @@ on<!doctype html>
     if (fileHandles.ledger)  await writeJson('ledger',  DB.ledger);
     saveLocal();
   }
-  async function loadAll(){
-    const fromFiles = {players:null,games:null,ledger:null};
-    for (const k of ['players','games','ledger']) fromFiles[k] = await readJson(k);
-    const haveFiles = Object.values(fromFiles).every(v => Array.isArray(v));
-    if (haveFiles){
-      DB.players = fromFiles.players; DB.games = fromFiles.games; DB.ledger = fromFiles.ledger;
-    }else{
-      try{ DB = JSON.parse(localStorage.getItem(STORE_KEY)) || DB; }catch{}
-    }
+// Put these JSON files in the same folder as index.html on GitHub Pages.
+const REMOTE_JSON_URLS = {
+  players: 'players.json',
+  games:   'games.json',
+  ledger:  'ledger.json'
+};
+
+// Try to fetch JSON from the server (GitHub Pages). Read-only.
+async function tryLoadRemote() {
+  async function get(url){
+    const r = await fetch(url + '?v=' + Date.now(), { cache: 'no-store' });
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    return r.json();
   }
+  const [players, games, ledger] = await Promise.all([
+    get(REMOTE_JSON_URLS.players),
+    get(REMOTE_JSON_URLS.games),
+    get(REMOTE_JSON_URLS.ledger),
+  ]);
+  if (!Array.isArray(players) || !Array.isArray(games) || !Array.isArray(ledger)) {
+    throw new Error('Remote JSON shape invalid');
+  }
+  return { players, games, ledger };
+}
+
+// Replace your current loadAll() with this:
+async function loadAll(){
+  // 1) Try remote JSON (works on GitHub Pages if files are present)
+  try {
+    const remote = await tryLoadRemote();
+    DB = remote;
+    return; // read-only mode from server
+  } catch (e) {
+    // continue to local modes
+  }
+
+  // 2) If user selected local JSON files (File System Access), read those
+  const fromFiles = {players:null,games:null,ledger:null};
+  for (const k of ['players','games','ledger']) {
+    fromFiles[k] = await readJson(k);
+  }
+  const haveFiles = Object.values(fromFiles).every(v => Array.isArray(v));
+  if (haveFiles){
+    DB.players = fromFiles.players; DB.games = fromFiles.games; DB.ledger = fromFiles.ledger;
+  } else {
+    // 3) Fallback to localStorage
+    try{ DB = JSON.parse(localStorage.getItem(STORE_KEY)) || DB; }catch{}
+  }
+}
+
 
   /* ========= Tabs ========= */
   function switchTab(name){
